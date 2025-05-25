@@ -20,17 +20,12 @@ except:
 # Cargar el modelo y el vectorizador
 def load_model():
     model_path = os.path.dirname(__file__) + '/TF-IDF.pkl'
+    vectorizer_path = os.path.dirname(__file__) + '/vector_tfidf.pkl'
+    mlb_path = os.path.dirname(__file__) + '/mlb.pkl'
+
     model = joblib.load(model_path)
-    
-    # Recrear el vectorizador (debe ser idéntico al usado en entrenamiento)
-    vectorizer = TfidfVectorizer(
-        lowercase=True,
-        stop_words=stopwords_es + stopwords_en
-    )
-    
-    # Cargar el MultiLabelBinarizer para decodificar las etiquetas
-    mlb = joblib.load(os.path.dirname(__file__) + '/mlb.pkl')
-    
+    vectorizer = joblib.load(vectorizer_path)
+    mlb = joblib.load(mlb_path)
     return model, vectorizer, mlb
 
 # Función para predecir géneros

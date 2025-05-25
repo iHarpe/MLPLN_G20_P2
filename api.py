@@ -1,43 +1,45 @@
 #!/usr/bin/python
 from flask import Flask
 from flask_restx import Api, Resource, fields
-import joblib
 from model_deployment import predict_genres
 
 app = Flask(__name__)
 
 api = Api(
-    app, 
-    version='1.0', 
-    title='Movie Genre Prediction API',
-    description='API for predicting movie genres based on plot text')
+    app,
+    version='1.0',
+    title='API de Predicción de Géneros de Películas',
+    description='API para predecir los géneros de una película a partir de la sinopsis y el título (opcional).'
+)
 
-ns = api.namespace('predict', 
-     description='Movie Genre Classifier')
-   
+ns = api.namespace('predecir',
+     description='Clasificador de Géneros de Películas')
+
 parser = api.parser()
 
 parser.add_argument(
-    'plot', 
-    type=str, 
-    required=True, 
-    help='Movie plot text to analyze', 
-    location='args')
+    'sinopsis',
+    type=str,
+    required=True,
+    help='Sinopsis o trama de la película a analizar',
+    location='args'
+)
 
 parser.add_argument(
-    'title', 
-    type=str, 
-    required=False, 
-    help='Movie title (optional)', 
-    location='args')
+    'titulo',
+    type=str,
+    required=False,
+    help='Título de la película (opcional)',
+    location='args'
+)
 
-genre_model = api.model('Genre', {
-    'genre': fields.String(description='Movie genre'),
-    'probability': fields.Float(description='Probability score')
+genre_model = api.model('Género', {
+    'genre': fields.String(description='Género de la película'),
+    'probability': fields.Float(description='Probabilidad')
 })
 
-resource_fields = api.model('Resource', {
-    'genres': fields.List(fields.Nested(genre_model))
+resource_fields = api.model('Respuesta', {
+    'generos': fields.List(fields.Nested(genre_model), description='Lista de géneros predichos con sus probabilidades')
 })
 
 @ns.route('/')
@@ -47,14 +49,14 @@ class GenreApi(Resource):
     @api.marshal_with(resource_fields)
     def get(self):
         args = parser.parse_args()
-        plot = args['plot']
-        title = args['title'] if args['title'] else ""
-        
-        genres = predict_genres(plot, title)
-        
+        sinopsis = args['sinopsis']
+        titulo = args['titulo'] if args['titulo'] else ""
+
+        generos = predict_genres(sinopsis, titulo)
+
         return {
-            "genres": genres
+            "generos": generos
         }, 200
-    
+
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
