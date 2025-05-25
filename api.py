@@ -33,6 +33,15 @@ parser.add_argument(
     location='args'
 )
 
+parser.add_argument(
+    'top_n',
+    type=int,
+    required=False,
+    default=3,
+    help='Número de géneros principales a devolver (por defecto: 3)',
+    location='args'
+)
+
 genre_model = api.model('Género', {
     'genre': fields.String(description='Género de la película'),
     'probability': fields.Float(description='Probabilidad')
@@ -51,8 +60,9 @@ class GenreApi(Resource):
         args = parser.parse_args()
         sinopsis = args['sinopsis']
         titulo = args['titulo'] if args['titulo'] else ""
+        top_n = args['top_n']
 
-        generos = predict_genres(sinopsis, titulo)
+        generos = predict_genres(sinopsis, titulo, top_n)
 
         return {
             "generos": generos

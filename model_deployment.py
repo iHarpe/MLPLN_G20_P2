@@ -29,33 +29,32 @@ def load_model():
     return model, vectorizer, mlb
 
 # Función para predecir géneros
-def predict_genres(text, title=""):
+def predict_genres(text, title="", top_n=3):
     # Cargar modelo, vectorizador y binarizador
     model, vectorizer, mlb = load_model()
-    
+
     # Preparar el texto (título + texto)
     texto_completo = title + " " + text if title else text
-    
+
     # Crear DataFrame
     df = pd.DataFrame({'texto_completo': [texto_completo]})
-    
+
     # Transformar el texto
     X = vectorizer.transform(df['texto_completo'])
-    
+
     # Hacer predicción de probabilidades
     y_pred_proba = model.predict_proba(X)
-    
-    # Obtener los 3 géneros más probables
-    top_n = 3
+
+    # Obtener los N géneros más probables
     top_indices = y_pred_proba[0].argsort()[-top_n:][::-1]
     top_probs = y_pred_proba[0][top_indices]
-    
+
     # Crear resultado
     result = []
     for idx, prob in zip(top_indices, top_probs):
         genre = mlb.classes_[idx]
         result.append({"genre": genre, "probability": float(prob)})
-    
+
     return result
 
 if __name__ == "__main__":
@@ -64,9 +63,10 @@ if __name__ == "__main__":
     else:
         text = sys.argv[1]
         title = sys.argv[2] if len(sys.argv) > 2 else ""
-        
-        genres = predict_genres(text, title)
-        
+        top_n = int(sys.argv[3]) if len(sys.argv) > 3 else 3
+
+        genres = predict_genres(text, title, top_n)
+
         print('Predicted genres:')
         for genre in genres:
             print(f"{genre['genre']}: {genre['probability']:.4f}")
